@@ -48,15 +48,21 @@ export default function PodcastEpisodesInfographic() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-        const normalized = (parsed.data || []).map((r) => normalizeRow(r));
+        const normalized = (parsed.data || [])
+         .map((r) => normalizeRow(r))
+         // drop empty/ghost rows with no identifying info
+         .filter((r) => (r.series && r.series.length) || (r.title && r.title.length) || (r.url && r.url.length));
         if (!cancelled) {
           setRows(normalized);
           setLoading(false);
         }
       } catch (e) {
         console.warn("Falling back to SAMPLE_DATA due to:", e);
-        const parsed = Papa.parse(SAMPLE_DATA, { header: true, skipEmptyLines: true });
-        const normalized = (parsed.data || []).map((r) => normalizeRow(r));
+        const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+        const normalized = (parsed.data || [])
+         .map((r) => normalizeRow(r))
+         // drop empty/ghost rows with no identifying info
+         .filter((r) => (r.series && r.series.length) || (r.title && r.title.length) || (r.url && r.url.length));
         if (!cancelled) {
           setRows(normalized);
           setLoading(false);
