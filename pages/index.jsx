@@ -28,8 +28,15 @@ export default function PodcastEpisodes(){
   <header className="collection-header">
    <p className="eyebrow">The Climatographers</p>
    <h1>Climate Podcast Explorer</h1>
-   <p className="collection-lead">Find climate conversations worth your time. Browse by podcast series or topic, search titles and summaries, and choose newest or oldest first. Select <strong>Read summary</strong> for a substantive overview of an episode’s arguments, examples, and qualifications.</p>
-   <div className="collection-context">
+   <p className="collection-lead">Climate conversations selected for their relevance to a broad audience. Explore how ideas and debates across climate topics evolve over time.</p>
+   <details className="collection-about">
+    <summary>About this collection and how to use it</summary>
+    <div className="about-content">
+     <p>The Climatographers listen to a lot of climate podcasts as part of our ongoing tracking of climate risk and our Climate Chess thinking. Many episodes offer limited new insight or speak to a very narrow audience. Here we select the conversations we think will be useful to a relatively broad audience.</p>
+     <p>Together, these episodes make it possible to explore how conversations about numerous climate topics are evolving over time: which ideas gain traction, where disagreements persist, and how responses change as new evidence and events emerge.</p>
+     <h2>Explore the collection</h2>
+     <p>Browse by podcast series or topic, search titles and summaries, and choose newest or oldest first. Select <strong>Read summary</strong> for a substantive overview of an episode’s arguments, examples, and qualifications. To follow a topic over time, select its tag or search for it, then choose <strong>Oldest first</strong>.</p>
+     <div className="collection-context">
     <section aria-labelledby="listen-heading">
      <h2 id="listen-heading">Listen on your preferred platform</h2>
      <p>People use different podcast platforms, so we haven’t linked episodes to a single player. Search your preferred app for the series and episode title, using the month and year shown to find the right episode.</p>
@@ -38,9 +45,11 @@ export default function PodcastEpisodes(){
      <h2 id="transcripts-heading">Go deeper with full transcripts</h2>
      <p>We start with full episode transcripts, rather than short show descriptions. The transcripts also underpin our Gemini / NotebookLM notebooks for more in-depth analysis, connections across episodes, and storytelling around specific climate topics.</p>
     </section>
-   </div>
-   <p className="related-collection">For curated climate posts, articles, and conversations from LinkedIn, explore our <a href="https://linkedin-knowledgebase.vercel.app/" target="_blank" rel="noopener noreferrer">Climate on LinkedIn Knowledgebase<span className="sr-only"> (opens in a new tab)</span></a>.</p>
-   <p className="collection-note">This is a selective collection, not a comprehensive podcast directory. AI-assisted summaries help you decide what to listen to; the full episodes provide the complete discussion.</p>
+     </div>
+     <p className="related-collection">For curated climate posts, articles, and conversations from LinkedIn, explore our <a href="https://linkedin-knowledgebase.vercel.app/" target="_blank" rel="noopener noreferrer">Climate on LinkedIn Knowledgebase<span className="sr-only"> (opens in a new tab)</span></a>.</p>
+     <p className="collection-note">This is a selective collection, not a comprehensive podcast directory. AI-assisted summaries help you decide what to listen to; the full episodes provide the complete discussion.</p>
+    </div>
+   </details>
    <div className="newsletter-panel">
     <div><h2>Keep up with the climate conversation</h2><p>Subscribe to the Climatographers’ <em>Climate Change on LinkedIn</em> newsletter for curated posts, short reviews, and connections across climate topics.</p></div>
     <a className="newsletter-cta" href="https://www.linkedin.com/newsletters/climate-change-on-linkedin-7246276184802504704/" target="_blank" rel="noopener noreferrer">Subscribe to Newsletter<span className="sr-only"> (opens LinkedIn in a new tab)</span></a>

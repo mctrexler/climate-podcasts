@@ -9,6 +9,12 @@ body { background: #f8fafc; }
 .collection-header h1 {font-size:clamp(1.8rem,4vw,2.7rem);font-weight:700;margin:10px 0;}
 .collection-header p {max-width:850px;line-height:1.7;}
 .collection-lead {font-size:1.1rem;}
+.collection-about {margin-top:18px;border-top:1px solid #bfcfc9;padding-top:14px;}
+.collection-about > summary {cursor:pointer;font-size:1rem;font-weight:650;color:#125c50;padding:6px 0;}
+.collection-about > summary::marker {color:#165d50;}
+.about-content {padding-top:12px;}
+.about-content > p + p {margin-top:12px;}
+.about-content > h2 {font-size:1rem;font-weight:650;margin:20px 0 6px;}
 .collection-context {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 32px;margin:24px 0 18px;}
 .collection-context h2,.newsletter-panel h2 {font-size:1rem;font-weight:650;margin-bottom:6px;}
 .collection-header a:not(.newsletter-cta) {color:#125c50;text-decoration:underline;text-underline-offset:3px;}
