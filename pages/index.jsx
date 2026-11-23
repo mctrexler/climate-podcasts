@@ -29,6 +29,14 @@ export default function PodcastEpisodes(){
    <p className="eyebrow">The Climatographers</p>
    <h1>Climate Podcast Explorer</h1>
    <p className="collection-lead">Climate conversations selected for their relevance to a broad audience. Explore how ideas and debates across climate topics evolve over time.</p>
+   <div className="newsletter-panel">
+    <div>
+     <h2>Coming soon: Climate Change Podcasts</h2>
+     <p>We’ll be launching a <em>Climate Change Podcasts</em> newsletter to help readers track climate topics and follow how conversations evolve across episodes.</p>
+     <p className="related-collection">In the meantime, explore our <a href="https://linkedin-knowledgebase.vercel.app/" target="_blank" rel="noopener noreferrer">Climate on LinkedIn Knowledgebase<span className="sr-only"> (opens in a new tab)</span></a> for curated climate posts and conversations, and subscribe to our existing <em>Climate Change on LinkedIn</em> newsletter.</p>
+    </div>
+    <a className="newsletter-cta" href="https://www.linkedin.com/newsletters/climate-change-on-linkedin-7246276184802504704/" target="_blank" rel="noopener noreferrer">Subscribe to Newsletter<span className="sr-only">: Climate Change on LinkedIn (opens LinkedIn in a new tab)</span></a>
+   </div>
    <details className="collection-about">
     <summary>About this collection and how to use it</summary>
     <div className="about-content">
@@ -46,14 +54,9 @@ export default function PodcastEpisodes(){
      <p>We start with full episode transcripts, rather than short show descriptions. The transcripts also underpin our Gemini / NotebookLM notebooks for more in-depth analysis, connections across episodes, and storytelling around specific climate topics.</p>
     </section>
      </div>
-     <p className="related-collection">For curated climate posts, articles, and conversations from LinkedIn, explore our <a href="https://linkedin-knowledgebase.vercel.app/" target="_blank" rel="noopener noreferrer">Climate on LinkedIn Knowledgebase<span className="sr-only"> (opens in a new tab)</span></a>.</p>
      <p className="collection-note">This is a selective collection, not a comprehensive podcast directory. AI-assisted summaries help you decide what to listen to; the full episodes provide the complete discussion.</p>
     </div>
    </details>
-   <div className="newsletter-panel">
-    <div><h2>Keep up with the climate conversation</h2><p>Subscribe to the Climatographers’ <em>Climate Change on LinkedIn</em> newsletter for curated posts, short reviews, and connections across climate topics.</p></div>
-    <a className="newsletter-cta" href="https://www.linkedin.com/newsletters/climate-change-on-linkedin-7246276184802504704/" target="_blank" rel="noopener noreferrer">Subscribe to Newsletter<span className="sr-only"> (opens LinkedIn in a new tab)</span></a>
-   </div>
   </header>
   {error&&<p role="alert" className="feed-error">{error}</p>}
   <section aria-label="Collection filters" className="grid gap-4 md:grid-cols-3">
