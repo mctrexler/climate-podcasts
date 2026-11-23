@@ -4,3 +4,31 @@
 
 html, body, #__next { height: 100%; }
 body { background: #f8fafc; }
+.explorer {max-width:1400px;margin:auto;color:#172b35;font-family:system-ui,sans-serif;}
+.collection-header {background:#e9f1ef;border-radius:20px;padding:32px;border:1px solid #cadbd5;}
+.collection-header h1 {font-size:clamp(1.8rem,4vw,2.7rem);font-weight:700;margin:10px 0;}
+.collection-header p {max-width:850px;line-height:1.7;}
+.eyebrow,.filter-label {font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+.filter-label {margin-bottom:8px;}
+.search-controls {display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.search-controls input {width:100%;min-width:0;}
+input,select,button {font:inherit;}
+input,select,.search-controls button {border:1px solid #bdcbc7;border-radius:6px;padding:8px;background:white;}
+button {cursor:pointer;}
+:focus-visible {outline:3px solid #137a69;outline-offset:3px;}
+.episode-card {display:flex;flex-direction:column;background:white;border:1px solid #d5dedb;border-radius:16px;padding:22px;gap:12px;min-width:0;}
+.episode-series,.episode-date {font-size:.8rem;color:#53676c;}
+.episode-series {text-transform:uppercase;letter-spacing:.05em;}
+.episode-card h2 {font-size:1.12rem;font-weight:650;line-height:1.4;}
+.episode-card a:hover {text-decoration:underline;}
+.summary-preview {font-size:.9rem;line-height:1.65;color:#42565d;}
+.tag-list {display:flex;flex-wrap:wrap;gap:6px;}
+.tag-list span {font-size:.75rem;padding:3px 8px;border-radius:20px;background:#edf3f1;}
+.read-summary {margin-top:auto;align-self:flex-start;border-radius:8px;background:#165d50;color:white;padding:11px 18px;font-weight:600;}
+.summary-dialog {width:min(760px,calc(100% - 32px));max-height:88vh;overflow:auto;padding:28px;border:1px solid #cbd8d2;border-radius:16px;color:#172b35;}
+.summary-dialog::backdrop {background:rgba(8,27,26,.65);}
+.summary-dialog h2 {font-size:1.5rem;margin:12px 0;}
+.close-dialog {display:block;margin-left:auto;border:1px solid #a8bbb3;border-radius:6px;padding:8px 14px;}
+.full-summary {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;margin:24px 0;}
+.original-link {text-decoration:underline;color:#165d50;}
+.feed-error {padding:16px;background:#fff0e8;border:1px solid #d79b7e;border-radius:8px;}

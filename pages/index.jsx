@@ -1,252 +1,63 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import Papa from "papaparse";
-
-// ------------------------------------------------------------
-// Podcast Episodes Infographic — Card Grid (3 columns) + Stars
-// ------------------------------------------------------------
-
-const SAMPLE_DATA = `series_name,episode_title,pub_date_iso,tags,score_general,score_advanced,summary,url\n
-Cleaning Up,Nuclear's Next Wave,2025-07-26,"nuclear; policy",4,5,"A conversation about advanced nuclear and timelines.",https://example.com/ep1\n
-Climate One,Insurance in the Hot Zone,2025-08-10,"insurance, risk",5,4,"Why insurers are retreating; what it means for homeowners.",https://example.com/ep2\n
-Volts,Grid nerd out: HVDC,2025-08-20,"grid, hvdc, transmission",5,5,"A deep dive on HVDC for a renewables-heavy grid.",https://example.com/ep3\n
-Drilled,Litigation Update: 2025,2025-08-05,"litigation; attribution",3,5,"Roundup of major climate lawsuits and what to watch.",https://example.com/ep4`;
-
-function parseDateSafe(v) {
-  const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {dateInterval, chronologicalCompare, episodeDateLabel} from '../utils/sheetRecords.cjs';
+const unique = values => [...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+export default function PodcastEpisodes(){
+ const [rows,setRows]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [series,setSeries]=useState([]),[tags,setTags]=useState([]),[search,setSearch]=useState(''),[period,setPeriod]=useState('all'),[max,setMax]=useState(200);
+ const [order,setOrder]=useState('newest');
+ useEffect(()=>{
+  const controller=new AbortController();
+  async function load(){try{
+   const response=await fetch('/api/episodes',{signal:controller.signal,cache:'no-store'});
+   const data=await response.json();if(!response.ok)throw Error(data.error||'Collection unavailable');
+   if(!Array.isArray(data.episodes))throw Error('Unexpected collection response');setRows(data.episodes);
+  }catch(e){if(e.name!=='AbortError')setError(e.message);}finally{if(!controller.signal.aborted)setLoading(false);}}
+  load();return()=>controller.abort();
+ },[]);
+ const filtered=useMemo(()=>{
+  const now=Date.now(),cutoff=now-Number(period)*86400000,q=search.trim().toLowerCase();
+  return rows.filter(r=>{
+   if(series.length&&!series.includes(r.series))return false;
+   if(tags.length&&!r.tags.some(t=>tags.includes(t)))return false;
+   if(period!=='all'){const interval=dateInterval(r.date,r.date_precision);if(!interval||interval.end<cutoff||interval.start>now)return false;}
+   return !q||[r.title,r.series,r.summary,...r.tags].join(' ').toLowerCase().includes(q);
+  }).sort((a,b)=>chronologicalCompare(a,b,order));
+ },[rows,series,tags,search,period,order]);
+ const limited=max===-1?filtered:filtered.slice(0,max);
+ return <main className="p-6 space-y-6 explorer">
+  <header className="collection-header"><p className="eyebrow">The Climatographers</p><h1>Climate Podcast Explorer</h1><p>Discover conversations about climate change. Explore a series or topic, search the collection, and read episode summaries.</p></header>
+  {error&&<p role="alert" className="feed-error">{error}</p>}
+  <section aria-label="Collection filters" className="grid gap-4 md:grid-cols-3">
+   <div><h2 className="filter-label">Podcast series</h2><MultiSelect options={unique(rows.map(r=>r.series))} selected={series} onChange={setSeries} placeholder="All series" /></div>
+   <div><h2 className="filter-label">Topics / tags</h2><MultiSelect options={unique(rows.flatMap(r=>r.tags))} selected={tags} onChange={setTags} placeholder="All topics" /></div>
+   <div className="search-controls"><label htmlFor="search">Search collection</label><input id="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search titles, summaries, series..." />
+   <label htmlFor="period">Date window</label><select id="period" value={period} onChange={e=>setPeriod(e.target.value)}><option value="all">All time</option>{[7,30,90,365].map(n=><option key={n} value={n}>Last {n} days</option>)}</select>
+   <label htmlFor="order">Chronological order</label><select id="order" value={order} onChange={e=>setOrder(e.target.value)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
+   <label htmlFor="max">Maximum results</label><select id="max" value={max} onChange={e=>setMax(Number(e.target.value))}>{[100,200,500].map(n=><option key={n} value={n}>{n}</option>)}<option value={-1}>All</option></select>
+   <button onClick={()=>{setSeries([]);setTags([]);setSearch('');setPeriod('all');setOrder('newest');setMax(200);}}>Reset filters</button></div>
+  </section>
+  <p role="status">{loading?'Loading episodes...':`Showing ${limited.length} of ${filtered.length} matching records (${rows.length} published).`}</p>
+  {!loading&&!error&&!limited.length&&<p>{rows.length?'No records match these filters.':'No episodes have been published yet.'}</p>}
+  <section aria-label="Episodes" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{limited.map(r=><EpisodeCard key={r.id} row={r}/>)}</section>
+ </main>;
 }
-
-function formatDateShort(v) {
-  const d = parseDateSafe(v);
-  if (!d) return v || "";
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${yyyy}-${mm}-${dd}`;
+function EpisodeCard({row}){
+ const ref=useRef(null),trigger=useRef(null),titleId=React.useId();
+ function open(){ref.current.showModal();}
+ function close(){ref.current.close();}
+ return <article className="episode-card">
+  <p className="episode-series">{row.series||row.content_type||'Climate collection'}</p>
+  <h2>{row.title}</h2>
+  <p className="episode-date">{episodeDateLabel(row.date,row.date_precision)}</p>
+  <p className="summary-preview">{row.summary.slice(0,220)}{row.summary.length>220?'…':''}</p>
+  <div className="tag-list">{row.tags.map(t=><span key={t}>{t}</span>)}</div>
+  <button ref={trigger} className="read-summary" aria-haspopup="dialog" onClick={open}>Read summary<span className="sr-only">: {row.title}</span></button>
+  <dialog ref={ref} aria-labelledby={titleId} className="summary-dialog" onClose={()=>trigger.current?.focus()}>
+   <button className="close-dialog" autoFocus onClick={close}>Close</button><p className="episode-series">{row.series}</p><h2 id={titleId}>{row.title}</h2>
+   <p className="episode-date">{episodeDateLabel(row.date,row.date_precision)}</p><div className="full-summary">{row.summary}</div>
+  </dialog>
+ </article>;
 }
-
-function uniqueSorted(arr) {
-  return Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b));
-}
-
-export default function PodcastEpisodesInfographic() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const [selectedSeries, setSelectedSeries] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [last30Only, setLast30Only] = useState(false);
-  const [maxResults, setMaxResults] = useState(200);
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch("/episodes.csv", { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-        const normalized = (parsed.data || [])
-         .map((r) => normalizeRow(r))
-         // drop empty/ghost rows with no identifying info
-         .filter((r) => (r.series && r.series.length) || (r.title && r.title.length) || (r.url && r.url.length));
-        if (!cancelled) {
-          setRows(normalized);
-          setLoading(false);
-        }
-      } catch (e) {
-        console.warn("Falling back to SAMPLE_DATA due to:", e);
-        const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-        const normalized = (parsed.data || [])
-         .map((r) => normalizeRow(r))
-         // drop empty/ghost rows with no identifying info
-         .filter((r) => (r.series && r.series.length) || (r.title && r.title.length) || (r.url && r.url.length));
-        if (!cancelled) {
-          setRows(normalized);
-          setLoading(false);
-          setError("Using built-in sample data (episodes.csv not found).");
-        }
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  function normalizeRow(r) {
-    const series = (r.series_name || r.Series || r.series || "").trim();
-    const title = (r.episode_title || r.title || "").trim();
-    const dateRaw = (r.pub_date_iso || r.date || r.published || "").trim();
-    const dateObj = parseDateSafe(dateRaw);
-    const tagsStr = (r.tags || r.Tags || "").toString();
-    const tags = tagsStr.split(/[,;]+/).map((t) => t.trim()).filter(Boolean);
-
-    const sg = Number(r.score_general ?? r.general ?? r.general_score);
-    const sa = Number(r.score_advanced ?? r.advanced ?? r.advanced_score);
-    const scoreGen = isFinite(sg) && sg >= 1 && sg <= 5 ? Math.round(sg) : null;
-    const scoreAdv = isFinite(sa) && sa >= 1 && sa <= 5 ? Math.round(sa) : null;
-
-    const summaryGeneral = (r.summary_general || r.summaryGeneral || "").trim();
-    const summaryAdvanced = (r.summary_advanced || r.summaryAdvanced || "").trim();
-    const summary = (summaryGeneral || (r.summary || r.Summary || r.description || "")).trim();
-    const url = (r.url || r.link || r.href || r.episode_url || "").trim();
-
-    return { series, title, dateRaw, dateObj, tags, scoreGen, scoreAdv, summary, summaryGeneral, summaryAdvanced, url };
-  }
-
-  const allSeries = useMemo(() => uniqueSorted(rows.map((r) => r.series)), [rows]);
-  const allTags = useMemo(() => uniqueSorted(rows.flatMap((r) => r.tags)), [rows]);
-
-  const cutoff = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d;
-  }, []);
-
-  const filtered = useMemo(() => {
-    let out = rows;
-    if (selectedSeries.length) out = out.filter((r) => selectedSeries.includes(r.series));
-    if (selectedTags.length) out = out.filter((r) => r.tags.some((t) => selectedTags.includes(t)));
-    if (last30Only) out = out.filter((r) => r.dateObj && r.dateObj >= cutoff);
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      out = out.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.series.toLowerCase().includes(q) ||
-          r.tags.join(",").toLowerCase().includes(q) ||
-          r.summary.toLowerCase().includes(q)
-      );
-    }
-    return [...out].sort((a, b) => {
-      const at = a.dateObj ? a.dateObj.getTime() : 0;
-      const bt = b.dateObj ? b.dateObj.getTime() : 0;
-      if (bt !== at) return bt - at;
-      const s = a.series.localeCompare(b.series);
-      if (s !== 0) return s;
-      return a.title.localeCompare(b.title);
-    });
-  }, [rows, selectedSeries, selectedTags, last30Only, cutoff, search]);
-
-  const limited = useMemo(() => (!maxResults || maxResults === -1 ? filtered : filtered.slice(0, maxResults)), [filtered, maxResults]);
-
-  if (loading) return <div className="p-6 text-sm text-gray-700">Loading episodes…</div>;
-
-  return (
-    <div className="p-6 space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Climate Podcast Infographic</h1>
-        <p className="text-sm text-gray-600">Filter by podcast series, tags, and time window. Hover/click any card to read the summary and open the episode.</p>
-        {error && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 inline-block">{error}</div>}
-      </header>
-
-      {/* Controls */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="space-y-1">
-          <label className="block text-xs uppercase text-gray-600">Podcast Series</label>
-          <MultiSelect options={allSeries} selected={selectedSeries} onChange={setSelectedSeries} placeholder="All series" />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-xs uppercase text-gray-600">Tags</label>
-          <MultiSelect options={allTags} selected={selectedTags} onChange={setSelectedTags} placeholder="All tags" />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-xs uppercase text-gray-600">Search & Filters</label>
-          <div className="flex items-center gap-2">
-            <input className="flex-1 border rounded px-3 py-2 text-sm" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={last30Only} onChange={(e) => setLast30Only(e.target.checked)} /> Last 30 days
-            </label>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-gray-600">Max results:</span>
-            <select className="border rounded px-2 py-1 text-sm" value={maxResults} onChange={(e) => setMaxResults(Number(e.target.value))}>
-              <option value={100}>100</option>
-              <option value={200}>200</option>
-              <option value={500}>500</option>
-              <option value={-1}>All</option>
-            </select>
-            <button className="ml-auto text-xs px-3 py-1.5 border rounded bg-white" onClick={() => {setSelectedSeries([]);setSelectedTags([]);setSearch("");setLast30Only(false);}}>Reset</button>
-          </div>
-        </div>
-      </section>
-
-      <div className="text-sm text-gray-700">Showing <strong>{limited.length}</strong> of <strong>{filtered.length}</strong> (from {rows.length} total).</div>
-
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {limited.map((r, idx) => <EpisodeCard key={`${r.series}|${r.title}|${r.dateRaw}|${idx}`} row={r} />)}
-      </section>
-    </div>
-  );
-}
-
-function EpisodeCard({ row }) {
-  const [open, setOpen] = useState(false);
-  const [showAdv, setShowAdv] = useState(false);
-  const cardRef = useRef(null);
-
-  useEffect(() => {
-    function onDocClick(e) { if (cardRef.current && !cardRef.current.contains(e.target)) setOpen(false); }
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
-
-  return (
-    <div ref={cardRef} className="relative border rounded-2xl p-4 bg-white shadow-sm hover:shadow-md" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <div className="text-xs text-gray-500 mb-1 truncate" title={row.series}>{row.series}</div>
-      <div className="font-medium">
-        {row.url ? <a href={row.url} target="_blank" rel="noreferrer" className="hover:underline">{row.title}</a> : row.title}
-      </div>
-      <div className="mt-3 flex items-center gap-3">
-        <div className="flex items-center gap-1"><span className="text-xs text-gray-500">Gen</span>{row.scoreGen!=null?<StarRating value={row.scoreGen}/>:<span className="text-xs text-gray-400">—</span>}</div>
-        <div className="flex items-center gap-1"><span className="text-xs text-gray-500">Adv</span>{row.scoreAdv!=null?<StarRating value={row.scoreAdv}/>:<span className="text-xs text-gray-400">—</span>}</div>
-      </div>
-      <button className="mt-3 text-xs px-2 py-1 border rounded hover:bg-gray-50" onClick={() => setOpen((v)=>!v)}>Details</button>
-      {open && (
-        <div className="absolute z-10 top-full left-4 right-4 mt-2 border rounded bg-white shadow-lg p-3">
-          <div className="text-sm">
-            <div className="font-semibold">{row.series}</div>
-            <div>{row.title}</div>
-            {row.dateRaw && <div className="text-xs text-gray-500">{formatDateShort(row.dateRaw)}</div>}
-
-            {row.summaryGeneral ? (
-              <p className="mt-2 text-gray-700">{row.summaryGeneral}</p>
-            ) : row.summary ? (
-              <p className="mt-2 text-gray-700">{row.summary}</p>
-            ) : null}
-
-            {row.summaryAdvanced ? (
-              <div className="mt-2">
-                <button className="text-xs underline" onClick={() => setShowAdv((s)=>!s)}>
-                  {showAdv ? 'Hide advanced summary' : 'Show advanced summary'}
-                </button>
-                {showAdv && (
-                  <p className="mt-1 text-gray-700"><span className="font-medium">Advanced: </span>{row.summaryAdvanced}</p>
-                )}
-              </div>
-            ) : null}
-
-            {row.url && (
-              <p className="mt-2">
-                <a href={row.url} target="_blank" rel="noreferrer" className="underline">Open episode ↗</a>
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StarRating({ value }) {
-  if (value == null) return null;
-  const v = Math.max(1, Math.min(5, Math.round(Number(value))));
-  return <span aria-label={`${v} out of 5`}>{new Array(5).fill(0).map((_,i)=><span key={i} className={`text-sm ${i<v?"":"opacity-30"}`}>★</span>)}</span>;
-}
-
 function MultiSelect({ options, selected, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
