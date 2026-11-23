@@ -1,5 +1,5 @@
 import {createSign} from 'node:crypto';
-import {publicRecords} from '../../utils/sheetRecords.cjs';
+import {publicPodcastRecords} from '../../utils/sheetRecords.cjs';
 let tokenCache;
 async function token(){
  if(tokenCache?.expires>Date.now())return tokenCache.token;
@@ -21,6 +21,6 @@ export default async function handler(req,res){
   const response=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values/${encodeURIComponent("'Episodes'!A1:W10000")}?valueRenderOption=FORMATTED_VALUE`,{headers:{Authorization:`Bearer ${access}`},signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error('Sheet unavailable');const data=await response.json();
   if(data.values?.length>=10000)throw Error('Sheet range capacity exceeded');
-  return res.status(200).json({episodes:publicRecords(data.values)});
+  return res.status(200).json({episodes:publicPodcastRecords(data.values)});
  }catch{return res.status(503).json({error:'The collection is temporarily unavailable. Please try again shortly.'});}
 }

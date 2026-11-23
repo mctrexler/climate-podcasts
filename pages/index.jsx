@@ -25,7 +25,27 @@ export default function PodcastEpisodes(){
  },[rows,series,tags,search,period,order]);
  const limited=max===-1?filtered:filtered.slice(0,max);
  return <main className="p-6 space-y-6 explorer">
-  <header className="collection-header"><p className="eyebrow">The Climatographers</p><h1>Climate Podcast Explorer</h1><p>Discover conversations about climate change. Explore a series or topic, search the collection, and read episode summaries.</p></header>
+  <header className="collection-header">
+   <p className="eyebrow">The Climatographers</p>
+   <h1>Climate Podcast Explorer</h1>
+   <p className="collection-lead">Find climate conversations worth your time. Browse by podcast series or topic, search titles and summaries, and choose newest or oldest first. Select <strong>Read summary</strong> for a substantive overview of an episode’s arguments, examples, and qualifications.</p>
+   <div className="collection-context">
+    <section aria-labelledby="listen-heading">
+     <h2 id="listen-heading">Listen on your preferred platform</h2>
+     <p>People use different podcast platforms, so we haven’t linked episodes to a single player. Search your preferred app for the series and episode title, using the month and year shown to find the right episode.</p>
+    </section>
+    <section aria-labelledby="transcripts-heading">
+     <h2 id="transcripts-heading">Go deeper with full transcripts</h2>
+     <p>We start with full episode transcripts, rather than short show descriptions. The transcripts also underpin our Gemini / NotebookLM notebooks for more in-depth analysis, connections across episodes, and storytelling around specific climate topics.</p>
+    </section>
+   </div>
+   <p className="related-collection">For curated climate posts, articles, and conversations from LinkedIn, explore our <a href="https://linkedin-knowledgebase.vercel.app/" target="_blank" rel="noopener noreferrer">Climate on LinkedIn Knowledgebase<span className="sr-only"> (opens in a new tab)</span></a>.</p>
+   <p className="collection-note">This is a selective collection, not a comprehensive podcast directory. AI-assisted summaries help you decide what to listen to; the full episodes provide the complete discussion.</p>
+   <div className="newsletter-panel">
+    <div><h2>Keep up with the climate conversation</h2><p>Subscribe to the Climatographers’ <em>Climate Change on LinkedIn</em> newsletter for curated posts, short reviews, and connections across climate topics.</p></div>
+    <a className="newsletter-cta" href="https://www.linkedin.com/newsletters/climate-change-on-linkedin-7246276184802504704/" target="_blank" rel="noopener noreferrer">Subscribe to Newsletter<span className="sr-only"> (opens LinkedIn in a new tab)</span></a>
+   </div>
+  </header>
   {error&&<p role="alert" className="feed-error">{error}</p>}
   <section aria-label="Collection filters" className="grid gap-4 md:grid-cols-3">
    <div><h2 className="filter-label">Podcast series</h2><MultiSelect options={unique(rows.map(r=>r.series))} selected={series} onChange={setSeries} placeholder="All series" /></div>

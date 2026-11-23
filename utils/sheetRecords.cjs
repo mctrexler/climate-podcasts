@@ -10,13 +10,14 @@ function dateInterval(value,precision){
  const end=inferred==='year'?Date.UTC(y+1,0,1)-1:inferred==='month'?Date.UTC(y,m,1)-1:start+86400000-1;
  return {start,end};
 }
-function publicRecords(values){
+function publicRecords(values,{excludeArticles=false}={}){
  const [headers,...rows]=values||[];
  if(!headers||required.some(h=>headers.filter(x=>x===h).length!==1))throw Error('Unexpected Episodes schema');
  const field=(r,h)=>String(r[headers.indexOf(h)]??'').trim(),seen=new Set();
  return rows.flatMap(r=>{
   const id=field(r,'Record ID');if(id){if(seen.has(id))throw Error('Duplicate Record ID');seen.add(id);}
   if(field(r,'Publication status').toLowerCase()!=='published')return [];
+  if(excludeArticles&&field(r,'Content type').toLowerCase()==='article')return [];
   const title=field(r,'Title'),summary=field(r,'Summary');if(!id||!title||!summary)throw Error('Incomplete Published record');
   let url='';const rawURL=field(r,'Original URL');
   if(rawURL){try{const u=new URL(rawURL);if(!['https:','http:'].includes(u.protocol))throw Error();url=u.href;}catch{throw Error('Invalid Published URL');}}
@@ -34,6 +35,10 @@ function chronologicalCompare(a,b,order='newest'){
  const difference=left&&right?(left.start-right.start)*(order==='oldest'?1:-1):0;
  return difference||a.series.localeCompare(b.series)||a.title.localeCompare(b.title);
 }
+function publicPodcastRecords(values){
+ // Keep editorial articles in the Sheet, but out of this podcast explorer.
+ return publicRecords(values,{excludeArticles:true});
+}
 function episodeDateLabel(value,precision){
  const interval=dateInterval(value,precision);
  if(!interval)return 'Episode date not yet verified';
@@ -41,4 +46,4 @@ function episodeDateLabel(value,precision){
  if(String(value).trim().length===4)return `${date.getUTCFullYear()} (month unknown)`;
  return new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(date);
 }
-module.exports={publicRecords,dateInterval,required,chronologicalCompare,episodeDateLabel};
+module.exports={publicRecords,publicPodcastRecords,dateInterval,required,chronologicalCompare,episodeDateLabel};
